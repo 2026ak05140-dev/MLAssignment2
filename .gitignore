@@ -1,0 +1,6 @@
+.venv/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+train_data.csv
+.streamlit/secrets.toml
