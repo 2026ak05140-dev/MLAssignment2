@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.linear_model import LogisticRegression
@@ -28,7 +29,8 @@ from sklearn.preprocessing import StandardScaler, label_binarize
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-TARGET_COLUMN = "Class"
+from prepare_data import CLASS_LABELS, FEATURE_COLUMNS, TARGET_COLUMN
+
 RANDOM_STATE = 20261106
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
@@ -50,19 +52,29 @@ def validate_data(train_data: pd.DataFrame, test_data: pd.DataFrame) -> list[str
     """Ensure training and test files have compatible numeric features and classes."""
     for label, data in (("training", train_data), ("test", test_data)):
         if TARGET_COLUMN not in data.columns:
-            raise ValueError(f"The {label} CSV is missing the {TARGET_COLUMN!r} target.")
+            raise ValueError(
+                f"The {label} CSV is missing the {TARGET_COLUMN!r} target."
+            )
         if data.isna().any().any():
             raise ValueError(f"The {label} CSV contains missing values.")
+        if [
+            column for column in data.columns if column != TARGET_COLUMN
+        ] != FEATURE_COLUMNS:
+            raise ValueError(
+                f"The {label} CSV must have Feature01 through Feature48 in order."
+            )
+        if not all(
+            pd.api.types.is_numeric_dtype(data[column]) for column in FEATURE_COLUMNS
+        ):
+            raise ValueError(f"All {label} model input features must be numeric.")
+        if not np.isfinite(data[FEATURE_COLUMNS].to_numpy()).all():
+            raise ValueError(f"The {label} CSV contains non-finite feature values.")
+        if set(data[TARGET_COLUMN].unique()) != set(CLASS_LABELS):
+            raise ValueError(
+                f"The {label} CSV must contain integer condition classes 1 through 11."
+            )
 
-    feature_columns = [column for column in train_data.columns if column != TARGET_COLUMN]
-    test_features = [column for column in test_data.columns if column != TARGET_COLUMN]
-    if not feature_columns or feature_columns != test_features:
-        raise ValueError("Training and test CSVs must have the same feature columns in order.")
-    if any(not pd.api.types.is_numeric_dtype(train_data[column]) for column in feature_columns):
-        raise ValueError("All model input features must be numeric.")
-    if set(train_data[TARGET_COLUMN].unique()) != set(test_data[TARGET_COLUMN].unique()):
-        raise ValueError("Training and test CSVs must contain the same target classes.")
-    return feature_columns
+    return FEATURE_COLUMNS.copy()
 
 
 def build_models() -> dict[str, tuple[str, Pipeline]]:
@@ -71,7 +83,8 @@ def build_models() -> dict[str, tuple[str, Pipeline]]:
         "logistic_regression": (
             "Logistic Regression",
             make_pipeline(
-                StandardScaler(), LogisticRegression(max_iter=2000, random_state=RANDOM_STATE)
+                StandardScaler(),
+                LogisticRegression(max_iter=2000, random_state=RANDOM_STATE),
             ),
         ),
         "decision_tree": (
@@ -106,9 +119,22 @@ def evaluate_model(
     labels: pd.Series,
 ) -> dict[str, float]:
     """Calculate the required metrics using macro averaging for multiclass scores."""
-    predictions = model.predict(features)
+    metrics, _ = evaluate_model_outputs(model, features, labels)
+    return metrics
+
+
+def evaluate_model_outputs(
+    model: Pipeline,
+    features: pd.DataFrame,
+    labels: pd.Series,
+) -> tuple[dict[str, float], np.ndarray]:
+    """Calculate metrics and retain predictions without repeating calibrated inference."""
     classes = model.classes_
     auc_scores = model.predict_proba(features)
+    if isinstance(model.steps[-1][1], CalibratedClassifierCV):
+        predictions = classes[np.argmax(auc_scores, axis=1)]
+    else:
+        predictions = model.predict(features)
     binary_labels = label_binarize(labels, classes=classes)
     precision, recall, f1, _ = precision_recall_fscore_support(
         labels,
@@ -116,7 +142,7 @@ def evaluate_model(
         average="macro",
         zero_division=0,
     )
-    return {
+    metrics = {
         "Accuracy": float(accuracy_score(labels, predictions)),
         "AUC": float(
             roc_auc_score(
@@ -130,6 +156,7 @@ def evaluate_model(
         "F1": float(f1),
         "MCC": float(matthews_corrcoef(labels, predictions)),
     }
+    return metrics, predictions
 
 
 def main() -> int:
@@ -147,6 +174,9 @@ def main() -> int:
         args.model_dir.mkdir(parents=True, exist_ok=True)
         result_rows: list[dict[str, str | float]] = []
         for model_key, (model_name, model) in build_models().items():
+            print(
+                f"Training {model_name} on {len(train_features):,} rows...", flush=True
+            )
             model.fit(train_features, train_labels)
             metrics = evaluate_model(model, test_features, test_labels)
             model_path = args.model_dir / f"{model_key}.joblib"

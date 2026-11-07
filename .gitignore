@@ -4,3 +4,6 @@ __pycache__/
 *.py[cod]
 train_data.csv
 .streamlit/secrets.toml
+.playwright-mcp/
+~$*.docx
+/ML_Assignment_2_AIML_26Oct26.pdf
