@@ -349,11 +349,12 @@ run training in the lab. Capture genuine lab execution evidence.
 
 The intended public link is
 [Drive Diagnosis Classifier Bench](https://mlassignment2-nz97nufqwetuqsaxhdjt6c.streamlit.app/).
-During verification on 2026-11-08, the browser was redirected to a network
-"Site Blocked" page; a separate fetch returned HTTP 403. This prevents verification
-from this environment and does not establish whether the deployed application
-itself is unavailable. Local artifacts are not published automatically.
-Commit/push, redeploy, and check the URL from an allowed network before submission.
+During verification on 2026-11-08, the app loaded successfully in the browser
+after the initial model evaluation.
+The bundled 11,702-row test set, selected-model metrics, model comparison,
+confusion matrix, and classification report sections appeared. A direct request
+to the public URL returned HTTP 200. This confirms availability during this
+check, but does not guarantee future uptime or reachability from every network.
 
 The app provides:
 
@@ -381,9 +382,9 @@ The final PDF must contain:
 4. The GitHub README content.
 
 > [!IMPORTANT]
-> Local screenshots are not BITS Virtual Lab evidence. Without genuine lab
-> evidence, the backup does not meet the 1-mark execution requirement. An
-> inaccessible public app may affect additional deployment-related marks.
+> The screenshots in `submission-assets/Portal Screenshots/` document a run
+> inside the BITS Virtual Lab. The app address `localhost:8501` in those
+> screenshots is the lab desktop, not the public Streamlit Cloud deployment.
 
 Review and understand the implementation before submission. The assignment
 permits AI for learning support, not direct copy-paste submissions. Retain
@@ -400,23 +401,23 @@ not a guarantee of marks or a certification of originality.
 | Five required classifiers on the same dataset | Verified: Logistic Regression, Decision Tree, KNN, Gaussian Naive Bayes, and RBF SVM use the same 46,807 training and 11,702 test records. |
 | Six metrics for every classifier | Verified: all 30 saved values match app calculations to a tolerance of 1e-12; the README table matches their four-decimal rounding. |
 | Observations for every model and an overall winner | Included: five analytical observations, Decision Tree winner, and evaluation limitations. |
-| Source, dependencies, test CSV, and five saved models | Present locally. Public repository is accessible, but the current local revision has not been published. |
+| Source, dependencies, test CSV, and five saved models | Present in the public repository. After publishing these README and evidence updates, local `main` and `origin/main` were verified at the same commit on 2026-11-08. |
 | Test CSV upload without retraining | Verified in the browser using the bundled test CSV; missing-feature input is rejected explicitly. Model files are unchanged by inference. |
-| Model dropdown, comparison, six metrics, confusion matrix/report | Verified for all five choices in regression tests and shown in fresh local screenshots. |
-| Single PDF ordered as repository link, live app link, BITS evidence, README | Backup uses these section positions; the BITS section states that genuine lab evidence is unavailable. Word is an editing copy, not the final submission format. |
-| Live Streamlit app opens an interactive frontend | Not verified: this environment blocks the public URL. Check the redeployed app from an allowed network. |
-| One genuine BITS Virtual Lab screenshot | Not fulfilled: all included images are explicitly local evidence. Replace the evidence section after a genuine lab run. |
+| Model dropdown, comparison, six metrics, confusion matrix/report | Verified for all five choices in regression tests; the hosted app loaded its comparison and report sections during browser verification. |
+| Single PDF ordered as repository link, live app link, BITS evidence, README | Keep the local submission PDF synchronized with the Word report and current repository. Both report files are excluded from Git. |
+| Live Streamlit app opens and evaluates the bundled test data | Verified on 2026-11-08: the hosted app returned HTTP 200, completed its first evaluation, and displayed the bundled data and selected-model metrics. |
+| Genuine BITS Virtual Lab execution evidence | Verified: `submission-assets/Portal Screenshots/` contains screenshots of the app running in the BITS virtual desktop with test data and model results. |
 | Academic integrity and genuine history | Must be reviewed by the author; tests and a dataset change cannot establish originality or compliance with the AI-use policy. |
 
-Before final submission, publish the current artifacts, verify the live app,
-replace the evidence section if a BITS run succeeds, and export the edited Word
-document as a single PDF. Recheck the PDF links and tables after any manual edits.
+Before final submission, confirm the public URL from the network used by the
+evaluator. Export the final Word report as one PDF and check its links, tables,
+and BITS screenshots after editing.
 
 ### Local Backup Evidence
 
-The [backup PDF](./submission-backup.pdf) and
-[editable Word backup](./submission-backup.docx) contain the current experiment.
-Replace the local execution section with genuine BITS evidence if a run succeeds.
+The Word report and exported PDF are local submission artifacts and are excluded
+from Git. Keep them synchronized with the repository and retain the genuine BITS
+screenshots in `submission-assets/Portal Screenshots/`.
 
 All screenshots below were refreshed from genuine local execution on 2026-11-08.
 They show the same Sensorless Drive test split and models as the result table.
