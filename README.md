@@ -193,6 +193,33 @@ repeated measurements under multiple operating conditions, but the published
 table does not provide a verified session/group identifier for a grouped split.
 High held-out scores must be interpreted within that limitation.
 
+## Application Architecture
+
+The project separates source-data preparation, model training, and interactive
+evaluation so the Streamlit app never fits a model from an uploaded test file.
+
+1. [prepare_data.py](./prepare_data.py) downloads the original UCI archive,
+   verifies its schema and values, assigns names to the 48 features, and writes
+   a stratified training/test split.
+2. [train_models.py](./train_models.py) validates both CSVs, builds five
+   scikit-learn pipelines, fits each pipeline on training rows, and evaluates
+   it on the held-out test rows. It saves the fitted pipelines under `model/`
+   and writes full-precision metrics to `model_metrics.csv`.
+3. [app.py](./app.py) reads the bundled test data and saved pipelines. A user
+   can keep the bundled test set or upload a labeled CSV with the same feature
+   schema. The app checks columns, numeric feature values, missing values, and
+   class labels before evaluating all five models.
+4. The app displays the comparison, metrics for the selected focus model, its
+   confusion matrix and classification report, and example predictions. It can
+   download the example test CSV, metric comparison, and selected-model
+   predictions. Upload evaluation does not retrain or overwrite model files.
+
+Streamlit caches the bundled test data and loaded model objects. Model
+comparisons are cached by evaluation data and saved-model modification times,
+so changing the focus model does not repeat inference across all test rows.
+`test_project.py` checks data parsing, split and model invariants, saved metrics,
+and each model selection in the Streamlit app.
+
 ## Experiment Workflow
 
 1. Install pinned dependencies in Python 3.11.
@@ -259,6 +286,60 @@ need verification; local timing does not certify acceptable cloud response time.
 
 Use pinned dependencies, including `scikit-learn==1.9.1`, to reproduce the saved
 models. Another scikit-learn version may warn or fail to reproduce behavior.
+
+## Common Troubleshooting
+
+### UCI Download or Dataset Preparation Fails
+
+`prepare_data.py` needs network access to the UCI archive. If the request times
+out or the archive cannot be reached, check the network and try again. The
+repository includes `test_data.csv` and fitted models for running the app; the
+training data file is generated locally and ignored by Git. To regenerate the
+split for retraining or regression tests, run:
+
+```powershell
+.\.venv\Scripts\python.exe prepare_data.py
+```
+
+### Uploaded CSV Is Rejected
+
+The upload must be a labeled test set with columns `Feature01` through
+`Feature48` in that order, followed by `Class`. Keep values numeric and finite,
+remove missing cells, and use class codes 1 through 11. Evaluation requires all
+11 classes so multiclass AUC can be calculated. Use the app's example CSV to
+check the expected column names and order.
+
+### Saved Model Is Missing or Does Not Match the Data
+
+The app loads the five `.joblib` files from `model/` and checks each pipeline's
+feature names and class labels before evaluation. Restore the complete `model/`
+folder from the repository. If models need to be rebuilt, first regenerate
+`train_data.csv` and `test_data.csv`, then run:
+
+```powershell
+.\.venv\Scripts\python.exe train_models.py
+```
+
+### Model Loading Warns or Fails After Installing Packages
+
+Install the pinned packages from `requirements.txt` in the same Python
+environment used to run Streamlit. The saved scikit-learn pipelines may not be
+compatible with other scikit-learn versions.
+
+### The First App Evaluation Takes a While
+
+On its first run, the app evaluates five saved models across the selected test
+data. The calibrated SVM can take longer than the other pipelines. Later focus
+model changes reuse cached comparisons. For a smaller trial, prepare a separate
+labeled CSV that still contains all 11 classes and the full 49-column schema.
+
+### Streamlit Community Cloud Does Not Start the App
+
+Confirm that the deployed branch contains `app.py`, `requirements.txt`, all
+five files in `model/`, and `test_data.csv`. Check the Cloud app logs for the
+first import or model-loading error, then confirm the deployment points to the
+correct repository, branch, and app file. Local success does not confirm that
+the public deployment is current or reachable.
 
 For BITS Virtual Lab, install the same dependencies and run preparation, training,
 and the app there. If downloads are blocked, transfer the generated CSVs and

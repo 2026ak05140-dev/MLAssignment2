@@ -81,21 +81,30 @@ def main() -> None:
         """
         <style>
         :root {
-            --ink: #172a27;
-            --muted: #60716d;
-            --accent: #147d69;
-            --accent-soft: #e4f2ed;
-            --rule: #dce5e1;
+            --ink: #0f1419;
+            --muted: #536471;
+            --accent: #1d9bf0;
+            --accent-soft: #e8f5fd;
+            --rule: #cfd9de;
         }
-        [data-testid="stAppViewContainer"] { background: #f7f9f7; color: var(--ink); }
-        [data-testid="stSidebar"] { background: #eef4f1; border-right: 1px solid var(--rule); }
-        h1, h2, h3 { color: var(--ink); font-family: Georgia, serif; }
+        [data-testid="stAppViewContainer"] { background: #f7f9fa; color: var(--ink); }
+        [data-testid="stSidebar"] { background: #eff3f4; border-right: 1px solid var(--rule); }
+        h1, h2, h3 { color: var(--ink); font-family: Arial, sans-serif; }
         [data-testid="stMetric"] {
             background: white; border: 1px solid var(--rule); border-top: 3px solid var(--accent);
-            padding: 14px 16px; border-radius: 6px;
+            padding: 14px 16px; border-radius: 12px;
         }
         [data-testid="stMetricLabel"] { color: var(--muted); }
-        div[data-testid="stDataFrame"] { border: 1px solid var(--rule); border-radius: 6px; }
+        div[data-testid="stDataFrame"] { border: 1px solid var(--rule); border-radius: 12px; }
+        [data-testid="stDownloadButton"] button {
+            border-color: var(--rule);
+            color: var(--ink);
+            border-radius: 999px;
+        }
+        [data-testid="stDownloadButton"] button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
         @media (max-width: 700px) {
             [data-testid="stAppViewContainer"] .main .block-container {
                 padding: 1.25rem 1rem 2rem;
