@@ -96,6 +96,13 @@ def main() -> None:
         }
         [data-testid="stMetricLabel"] { color: var(--muted); }
         div[data-testid="stDataFrame"] { border: 1px solid var(--rule); border-radius: 6px; }
+        @media (max-width: 700px) {
+            [data-testid="stAppViewContainer"] .main .block-container {
+                padding: 1.25rem 1rem 2rem;
+            }
+            h1 { font-size: 1.8rem; }
+            [data-testid="stMetric"] { padding: 10px 12px; }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -119,6 +126,13 @@ def main() -> None:
         uploaded_file = st.file_uploader("Upload test CSV", type="csv")
         st.caption(
             "Upload test data only: Feature01 through Feature48 and the integer Class target."
+        )
+        st.download_button(
+            "Download example test CSV",
+            data=default_data.to_csv(index=False).encode("utf-8"),
+            file_name="test_data.csv",
+            mime="text/csv",
+            width="stretch",
         )
 
     if uploaded_file is None:
@@ -215,6 +229,12 @@ def main() -> None:
         comparison.style.format("{:.4f}"),
         width="stretch",
     )
+    st.download_button(
+        "Download model comparison",
+        data=comparison.reset_index().to_csv(index=False).encode("utf-8"),
+        file_name="model_comparison.csv",
+        mime="text/csv",
+    )
 
     st.subheader(selected_model_name)
     selected_metrics = results[selected_model_name]
@@ -231,6 +251,22 @@ def main() -> None:
         selected_model_path, selected_model_path.stat().st_mtime_ns
     )
     selected_predictions = predictions_by_model[selected_model_name]
+    predictions_frame = pd.DataFrame(
+        {
+            "Record": np.arange(1, len(evaluation_data) + 1),
+            "Actual class": labels.to_numpy(),
+            "Predicted class": selected_predictions.to_numpy(),
+        }
+    )
+    predictions_frame["Correct"] = predictions_frame["Actual class"].eq(
+        predictions_frame["Predicted class"]
+    )
+    st.download_button(
+        "Download selected-model predictions",
+        data=predictions_frame.to_csv(index=False).encode("utf-8"),
+        file_name=f"{selected_model_name.lower().replace(' ', '_')}_predictions.csv",
+        mime="text/csv",
+    )
     class_labels = list(selected_model.classes_)
     matrix = confusion_matrix(labels, selected_predictions, labels=class_labels)
     matrix_frame = pd.DataFrame(

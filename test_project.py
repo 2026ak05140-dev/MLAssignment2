@@ -129,6 +129,7 @@ class SensorlessDriveTests(unittest.TestCase):
             rtol=1e-12,
             atol=1e-12,
         )
+        self.assertEqual(len(app.download_button), 3)
         for name in app.selectbox[0].options:
             with self.subTest(model=name):
                 app.selectbox[0].select(name).run(timeout=600)

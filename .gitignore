@@ -7,3 +7,10 @@ train_data.csv
 .playwright-mcp/
 ~$*.docx
 /ML_Assignment_2_AIML_26Oct26.pdf
+*.pdf
+*.doc
+*.docx
+*.docm
+*.dot
+*.dotx
+*.dotm

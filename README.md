@@ -212,6 +212,31 @@ High held-out scores must be interpreted within that limitation.
 8. Publish the replacement artifacts, redeploy, verify both public links, and
    assemble the final PDF with genuine BITS Virtual Lab evidence if available.
 
+### Software and Data Preparation
+
+Use Python 3.11 with the exact package versions in
+[requirements.txt](./requirements.txt). The app and training scripts use pandas
+for CSV handling, NumPy for numeric checks, scikit-learn for pipelines and
+metrics, joblib for saved models, and Streamlit for the interface. Internet
+access is needed to run `prepare_data.py`; the app itself uses the bundled test
+CSV and saved models.
+
+Data preparation is deterministic: the script downloads the original UCI ZIP,
+checks its row and column counts, rejects missing or non-finite values, assigns
+the 48 positional feature names, then creates a stratified 80/20 split using
+random state `20261106`. There is no imputation, row removal, feature selection,
+or additional feature transformation. `StandardScaler` is fitted inside the
+Logistic Regression, KNN, and SVM pipelines using training rows only. The tree
+and Gaussian Naive Bayes pipelines do not scale features. The held-out test
+split is used for reporting, not fitting.
+
+These are fixed baseline configurations, not fine-tuned results: no grid search
+or parameter search was run. The estimator settings are listed under
+[Pipeline Configurations](#pipeline-configurations). To change a setting,
+update `build_models()` in [train_models.py](./train_models.py), retrain, and
+report the result on the same held-out split only as a comparison; do not use
+that split to choose settings and then present it as an untouched final test.
+
 ## Reproduce the Local Run
 
 ```powershell
@@ -257,6 +282,8 @@ The app provides:
 * Actual input samples, exact schema, and evaluation class distribution.
 * The fitted pipeline and ten actual-versus-predicted examples with estimated
   maximum class probabilities, which are not guarantees of correctness.
+* Downloads for the example test CSV, model comparison, and selected model's
+  row-level predictions.
 
 All condition classes 1 through 11 must be present in the evaluation CSV.
 Missing required columns, missing/non-finite values, nonnumeric inputs, and
